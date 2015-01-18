@@ -1,0 +1,134 @@
+---
+title: "PA1_template.Rmd"
+
+author: "Eric Merriman"
+
+==========================================================================================
+
+First is code to load and transform the data:
+
+```{r}
+library(date)
+library(knitr)
+library(markdown)
+read.csv("activity.csv")->act
+as.date(as.character(act[,2]),order = "ymd")->act[,2]
+as.Date(act[,2])->act[,2]
+ts(act)->k
+names(k)<-names(act)
+```
+
+Next is a histogram of total number of steps taken per day:
+
+```{r}
+hist(k[,"steps"])
+```
+
+Next is mean and median of total number of steps taken per day
+
+```{r}
+
+aggregate(steps~date, data=k[,1:2], FUN=function(x) mean=mean(x))->n
+aggregate(steps~date, data=k[,1:2], FUN=function(x) median=median(x))->m        
+cbind(m,n[,2])->n
+as.date(n[,1])->n[,1]
+as.Date(n[,1])->n[,1]
+as.date(m[,1])->m[,1]
+as.Date(m[,1])->m[,1]
+
+## Mean
+
+print(n) 
+
+## Median
+
+print(m)
+
+```
+
+Next is A time series plot of average steps taken per interval (Average Daily Activity Pattern):
+
+```{r}
+aggregate(steps~interval, data=k[,1:3], FUN=function(x) mean=mean(x))->nn
+plot(nn,type="l")
+par(lab=c(10,10,10),mfrow=c(1,1))
+```
+
+Next wil list the Interval with Max Number of Average Steps:
+
+```{r}
+ max(nn[,2])->mx
+
+##Maximum Interval
+print(nn[which(nn[,2]==mx),1])
+```
+
+Next Will Be Calculating Number of Missing Values:
+
+```{r}
+which(!complete.cases(act))->d
+print(length(d))
+```
+
+Next Imputting Missing Values and Creating a new Dataset:
+
+```{r}
+act->act2
+mean(act[,1],na.rm=T)->j
+act2[is.na(act[,1]),1]<-j
+```
+
+Next Creating a Histogram of New Data:
+
+```{r}
+ts(act2)->z
+hist(z[,"steps"])
+```
+
+Mean and Median of New Data:
+
+```{r}
+aggregate(steps~date, data=z[,1:2], FUN=function(x) mean=mean(x))->s
+aggregate(steps~date, data=z[,1:2], FUN=function(x) median=median(x))->r       
+cbind(r,s[,2])->s
+as.date(s[,1])->s[,1]
+as.Date(s[,1])->s[,1]
+as.date(r[,1])->r[,1]
+as.Date(r[,1])->r[,1]
+
+## Mean
+
+print(s) 
+
+## Median
+
+print(r)
+```
+
+Next Time Series Plot for New Data:
+
+```{r}
+aggregate(steps~interval, data=z[,1:3], FUN=function(x) mean=mean(x))->ss
+plot(ss,type="l")
+par(lab=c(10,10,10))
+```
+
+Next Will Be Weekend and Weekday Identification:
+
+```{r}
+act2->f
+factor(weekdays(f[,2]),labels = 1:7)->f[,2]
+levels(f[,2]) <- c("Weekday", "Weekday", "Weekend", "Weekend", "Weekday","Weekday","Weekday")
+f[which(f[,2]=="Weekday"),]->wd
+f[which(f[,2]=="Weekend"),]->we
+aggregate(steps~interval, data=wd[,1:3], FUN=function(x) mean=mean(x))->wdagg
+aggregate(steps~interval, data=we[,1:3], FUN=function(x) mean=mean(x))->weagg
+```
+
+And Finally the 2 by 1 plot:
+
+```{r}
+par(mfrow=c(2,1),lab=c(5,5,7))
+plot(wdagg,type="l",main="Weekdays",col="blue")
+plot(weagg,type="l",main="Weekends",col="blue")
+```
